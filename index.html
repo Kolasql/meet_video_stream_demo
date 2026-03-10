@@ -54,6 +54,7 @@ border:none;
 height:650px;
 border-radius:10px;
 overflow:hidden;
+flex: 2;
 }
 
 .status{
@@ -61,57 +62,66 @@ margin-top:10px;
 font-size:14px;
 }
 
+.main-layout {
+  display: flex;
+  gap: 20px;
+  flex-direction: row;
+}
+
+.sidebar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.preview-box {
+  background: #1e293b;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.preview-box h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+#videoPlayer {
+  width: 100%;
+  border-radius: 8px;
+  background: black;
+}
 </style>
 </head>
 
 <body>
 
 <div class="container">
+<div class="main-layout">
 
-<div class="controls">
-
-<h2>Jitsi Video Stream Test</h2>
-
-<label>Room Name</label>
-<input id="roomName" value="video-stream-demo">
-
-<label>Your Name</label>
-<input id="userName" value="Video Bot">
-
-<br>
-
-<button onclick="startMeeting()">Start Meeting</button>
-
-<div class="status" id="status"></div>
-
-</div>
-
-<div style="display:flex; gap:20px; flex-wrap:wrap;">
-
-<div style="flex:2">
 <div id="jitsi-container"></div>
+
+<div class="sidebar">
+  <div class="controls">
+  <h2>Jitsi Video Stream Test</h2>
+  <label>Room Name</label>
+  <input id="roomName" value="video-stream-demo">
+  <label>Your Name</label>
+  <input id="userName" value="Video Bot">
+  <br>
+  <button onclick="startMeeting()">Start Meeting</button>
+  <div class="status" id="status"></div>
+  </div>
+
+  <div class="preview-box">
+  <h3>Video Preview</h3>
+  <video id="videoPlayer" muted autoplay playsinline crossorigin="anonymous" style="display:none;"></video>
+  <div id="previewStatus" style="font-size:13px; margin-top:5px; color:#94a3b8;">Waiting to start...</div>
+  </div>
 </div>
 
-<div style="flex:1; background:#020617; padding:10px; border-radius:10px;">
-<h3 style="margin-bottom:10px;">Streaming Preview</h3>
-
-<video id="videoPlayer"
-muted
-autoplay
-playsinline
-crossorigin="anonymous"
-style="width:100%; border-radius:8px;">
-</video>
-
-<p style="font-size:12px; opacity:0.7; margin-top:6px;">
-This is the video being streamed to participants.
-</p>
-
 </div>
-
 </div>
-
-<video id="videoPlayer" muted autoplay playsinline crossorigin="anonymous" style="display:none"></video>
 
 <script>
 
@@ -181,23 +191,17 @@ videoPlayer.onloadeddata=async ()=>{
 try{
 
 await videoPlayer.play()
+videoPlayer.style.display="block"
+document.getElementById("previewStatus").innerText = "Playing preview..."
 
-if(videoStream){
-videoStream.getTracks().forEach(t=>t.stop())
-}
+// Generate absolute URL for the video since Jitsi startSharedVideo requires an absolute URL
+const absoluteVideoUrl = new URL(path, window.location.href).href;
 
-videoStream=videoPlayer.captureStream()
+// The iframe API does not support passing a raw MediaStreamTrack object via replaceVideoTrack
+// over cross-origin postMessage. The correct way to stream a video file in a meeting is startSharedVideo.
+api.executeCommand("startSharedVideo", absoluteVideoUrl)
 
-const track=videoStream.getVideoTracks()[0]
-
-if(!track){
-updateStatus("No video track detected")
-return
-}
-
-api.executeCommand("replaceVideoTrack",track)
-
-updateStatus("Streaming: "+path)
+updateStatus("Streaming: "+absoluteVideoUrl)
 
 }catch(e){
 
@@ -224,4 +228,3 @@ loadVideo(filename)
 
 </body>
 </html>
-

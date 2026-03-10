@@ -109,8 +109,25 @@ font-size:14px;
   <label>Your Name</label>
   <input id="userName" value="Video Bot">
   <br>
-  <button onclick="startMeeting()">Start Meeting</button>
+  <button onclick="startMeeting()">1. Start Meeting</button>
   <div class="status" id="status"></div>
+  </div>
+
+  <div class="controls" id="streamControls" style="display:none;">
+    <h2>Stream Video</h2>
+    
+    <label>Option 1: Stream public MP4</label>
+    <button onclick="streamPublicVideo('placeholder.mp4')" style="background:#0ea5e9; font-size:13px;">Stream Repo Video Player</button>
+    <br><br>
+    
+    <label>Option 2: Stream local video from host</label>
+    <input type="file" id="localVideoFile" accept="video/*" style="background:#334155; margin-bottom: 5px;">
+    <button onclick="streamLocalVideo()" style="background:#10b981; font-size:13px;">Play & Screen Share Local Video</button>
+    
+    <div id="shareInstructions" style="display:none; margin-top:15px; background:#475569; padding:10px; border-radius:6px; font-size:13px;">
+      <b>Instruction:</b> To stream local video so participants can see and hear it, a Screen Share prompt will appear. 
+      <br><br>Please select <b>"Chrome Tab"</b>, pick this tab, and <u>ensure "Share tab audio" is checked!</u>
+    </div>
   </div>
 
   <div class="preview-box">
@@ -166,13 +183,8 @@ updateStatus("Joining meeting...")
 
 api.addEventListener("videoConferenceJoined",()=>{
 
-updateStatus("Meeting joined. Starting video stream...")
-
-setTimeout(()=>{
-
-loadVideo(defaultVideo)
-
-},2000)
+updateStatus("Meeting joined. You can now select a video to stream.")
+document.getElementById("streamControls").style.display = "block"
 
 })
 
@@ -194,14 +206,22 @@ await videoPlayer.play()
 videoPlayer.style.display="block"
 document.getElementById("previewStatus").innerText = "Playing preview..."
 
-// Generate absolute URL for the video since Jitsi startSharedVideo requires an absolute URL
-const absoluteVideoUrl = new URL(path, window.location.href).href;
+if(path.startsWith('blob:')) {
+  // For local files, start shared screen
+  updateStatus("Playing local file. Waiting for Screen Share selection...")
+  document.getElementById("shareInstructions").style.display = "block"
+  
+  // Trigger Jitsi's screen share dialog
+  api.executeCommand('toggleShareScreen')
+} else {
+  // Generate absolute URL for the public video
+  const absoluteVideoUrl = new URL(path, window.location.href).href;
 
-// The iframe API does not support passing a raw MediaStreamTrack object via replaceVideoTrack
-// over cross-origin postMessage. The correct way to stream a video file in a meeting is startSharedVideo.
-api.executeCommand("startSharedVideo", absoluteVideoUrl)
+  // Stream public URL natively
+  api.executeCommand("startSharedVideo", absoluteVideoUrl)
 
-updateStatus("Streaming: "+absoluteVideoUrl)
+  updateStatus("Streaming public video: "+absoluteVideoUrl)
+}
 
 }catch(e){
 
@@ -209,6 +229,22 @@ updateStatus("Streaming error: "+e.message)
 
 }
 
+}
+
+function streamPublicVideo(filename){
+  loadVideo(filename)
+}
+
+function streamLocalVideo(){
+  const fileInput = document.getElementById("localVideoFile")
+  if (!fileInput.files || fileInput.files.length === 0) {
+    alert("Please select a local video file first.")
+    return
+  }
+  
+  const file = fileInput.files[0]
+  const objectUrl = URL.createObjectURL(file)
+  loadVideo(objectUrl)
 }
 
 }

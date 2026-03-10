@@ -194,16 +194,16 @@ function loadVideo(path){
 
 const videoPlayer=document.getElementById("videoPlayer")
 
-videoPlayer.src=path
-videoPlayer.loop=true
-videoPlayer.muted=true
+// Immediately show the video element so the user sees that something is loading
+videoPlayer.style.display="block"
+document.getElementById("previewStatus").innerText = "Loading preview..."
 
+// Attach event listener BEFORE setting the source to prevent race conditions
 videoPlayer.onloadeddata=async ()=>{
 
 try{
 
 await videoPlayer.play()
-videoPlayer.style.display="block"
 document.getElementById("previewStatus").innerText = "Playing preview..."
 
 if(path.startsWith('blob:')) {
@@ -231,6 +231,14 @@ updateStatus("Streaming error: "+e.message)
 
 }
 
+videoPlayer.src=path
+videoPlayer.loop=true
+videoPlayer.muted=true
+// Force the video element to reload and properly register the listener
+videoPlayer.load()
+
+}
+
 function streamPublicVideo(filename){
   loadVideo(filename)
 }
@@ -245,8 +253,6 @@ function streamLocalVideo(){
   const file = fileInput.files[0]
   const objectUrl = URL.createObjectURL(file)
   loadVideo(objectUrl)
-}
-
 }
 
 function streamVideoFromRepo(filename){

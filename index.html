@@ -86,7 +86,28 @@ font-size:14px;
 
 </div>
 
+<div style="display:flex; gap:20px; flex-wrap:wrap;">
+
+<div style="flex:2">
 <div id="jitsi-container"></div>
+</div>
+
+<div style="flex:1; background:#020617; padding:10px; border-radius:10px;">
+<h3 style="margin-bottom:10px;">Streaming Preview</h3>
+
+<video id="videoPlayer"
+muted
+autoplay
+playsinline
+crossorigin="anonymous"
+style="width:100%; border-radius:8px;">
+</video>
+
+<p style="font-size:12px; opacity:0.7; margin-top:6px;">
+This is the video being streamed to participants.
+</p>
+
+</div>
 
 </div>
 
@@ -203,3 +224,4 @@ loadVideo(filename)
 
 </body>
 </html>
+

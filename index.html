@@ -212,7 +212,7 @@ document.getElementById("previewStatus").innerText = "Playing preview..."
 
 if(path.startsWith('blob:')) {
   // Stop any previously playing public shared video
-  api.executeCommand("stopSharedVideo")
+  api.executeCommand("stopShareVideo")
   
   // For local files, start shared screen
   updateStatus("Playing local file. Waiting for Screen Share selection...")
@@ -225,7 +225,7 @@ if(path.startsWith('blob:')) {
   const absoluteVideoUrl = new URL(path, window.location.href).href;
 
   // Stream public URL natively
-  api.executeCommand("startSharedVideo", absoluteVideoUrl)
+  api.executeCommand("startShareVideo", absoluteVideoUrl)
 
   updateStatus("Streaming public video: "+absoluteVideoUrl)
 }

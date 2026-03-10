@@ -183,8 +183,12 @@ updateStatus("Joining meeting...")
 
 api.addEventListener("videoConferenceJoined",()=>{
 
-updateStatus("Meeting joined. You can now select a video to stream.")
+updateStatus("Meeting joined. Auto-starting default video stream...")
 document.getElementById("streamControls").style.display = "block"
+
+setTimeout(()=>{
+  streamPublicVideo(defaultVideo)
+}, 2000)
 
 })
 
@@ -207,6 +211,9 @@ await videoPlayer.play()
 document.getElementById("previewStatus").innerText = "Playing preview..."
 
 if(path.startsWith('blob:')) {
+  // Stop any previously playing public shared video
+  api.executeCommand("stopSharedVideo")
+  
   // For local files, start shared screen
   updateStatus("Playing local file. Waiting for Screen Share selection...")
   document.getElementById("shareInstructions").style.display = "block"
